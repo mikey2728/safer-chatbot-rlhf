@@ -5,59 +5,18 @@ import { Send, ThumbsUp, ThumbsDown, AlertTriangle, CheckCircle } from "lucide-r
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-
-interface Message {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  feedback?: "positive" | "negative";
-  safetyRating?: number;
-}
+import { useStreamingChat } from "@/hooks/useStreamingChat";
 
 export const ChatInterface = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const { messages, isLoading, streamChat, handleFeedback, handleSafetyRating } = useStreamingChat();
 
   const handleSend = async () => {
-    if (!input.trim()) return;
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: "user",
-      content: input,
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
+    if (!input.trim() || isLoading) return;
+    
+    const message = input;
     setInput("");
-    setIsLoading(true);
-
-    // Simulate AI response
-    setTimeout(() => {
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: "I understand your request. As a safer AI assistant, I'll provide helpful information while maintaining ethical guidelines and safety standards.",
-      };
-      setMessages((prev) => [...prev, aiMessage]);
-      setIsLoading(false);
-    }, 1000);
-  };
-
-  const handleFeedback = (messageId: string, type: "positive" | "negative") => {
-    setMessages((prev) =>
-      prev.map((msg) =>
-        msg.id === messageId ? { ...msg, feedback: type } : msg
-      )
-    );
-  };
-
-  const handleSafetyRating = (messageId: string, rating: number) => {
-    setMessages((prev) =>
-      prev.map((msg) =>
-        msg.id === messageId ? { ...msg, safetyRating: rating } : msg
-      )
-    );
+    await streamChat(message);
   };
 
   return (
