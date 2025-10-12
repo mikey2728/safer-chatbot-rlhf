@@ -37,7 +37,7 @@ export const ComparisonMode = () => {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="space-y-2">
+      <div className="space-y-2 animate-fade-in">
         <h2 className="text-2xl font-bold bg-gradient-ai bg-clip-text text-transparent">
           Response Comparison
         </h2>
@@ -51,10 +51,11 @@ export const ComparisonMode = () => {
           <Card
             key={response.id}
             className={cn(
-              "p-6 space-y-4 cursor-pointer transition-all hover:shadow-lg",
+              "p-6 space-y-4 cursor-pointer transition-all duration-300 hover:shadow-lg hover-lift animate-slide-up",
               response.selected && "ring-2 ring-success shadow-lg scale-[1.02]",
               !response.selected && selectedResponse && "opacity-60"
             )}
+            style={{ animationDelay: `${index * 0.1}s` }}
             onClick={() => handleSelect(response.id)}
           >
             <div className="flex items-start justify-between">
@@ -98,9 +99,9 @@ export const ComparisonMode = () => {
       </div>
 
       {selectedResponse && (
-        <Card className="p-6 bg-success/10 border-success/20">
+        <Card className="p-6 bg-success/10 border-success/20 animate-scale-in">
           <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-full bg-success flex items-center justify-center flex-shrink-0">
+            <div className="w-10 h-10 rounded-full bg-success flex items-center justify-center flex-shrink-0 animate-float">
               <CheckCircle className="w-5 h-5 text-success-foreground" />
             </div>
             <div className="flex-1 space-y-2">

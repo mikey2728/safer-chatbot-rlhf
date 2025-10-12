@@ -60,7 +60,7 @@ export const AnalyticsDashboard = () => {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="space-y-2">
+      <div className="space-y-2 animate-fade-in">
         <h2 className="text-2xl font-bold bg-gradient-ai bg-clip-text text-transparent">
           Safety Analytics
         </h2>
@@ -70,8 +70,12 @@ export const AnalyticsDashboard = () => {
       </div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => (
-          <Card key={stat.label} className="p-6 shadow-card hover:shadow-lg transition-all">
+        {stats.map((stat, index) => (
+          <Card 
+            key={stat.label} 
+            className="p-6 shadow-card hover:shadow-lg transition-all duration-300 hover-lift animate-slide-up"
+            style={{ animationDelay: `${index * 0.1}s` }}
+          >
             <div className="flex items-start justify-between mb-4">
               <div
                 className={`w-10 h-10 rounded-xl flex items-center justify-center ${
@@ -118,13 +122,14 @@ export const AnalyticsDashboard = () => {
         ))}
       </div>
 
-      <Card className="p-6 shadow-card">
+      <Card className="p-6 shadow-card animate-scale-in">
         <h3 className="text-lg font-semibold mb-4">Recent Feedback</h3>
         <div className="space-y-4">
-          {recentFeedback.map((feedback) => (
+          {recentFeedback.map((feedback, index) => (
             <div
               key={feedback.id}
-              className="flex items-start gap-4 p-4 rounded-lg bg-muted/50 hover:bg-muted/70 transition-colors"
+              className="flex items-start gap-4 p-4 rounded-lg bg-muted/50 hover:bg-muted/70 transition-all duration-300 hover-lift animate-slide-in-right"
+              style={{ animationDelay: `${index * 0.1}s` }}
             >
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
@@ -165,7 +170,7 @@ export const AnalyticsDashboard = () => {
       </Card>
 
       <div className="grid md:grid-cols-2 gap-4">
-        <Card className="p-6 shadow-card">
+        <Card className="p-6 shadow-card animate-scale-in hover-lift transition-all duration-300">
           <h3 className="text-lg font-semibold mb-4">Safety Score Distribution</h3>
           <div className="space-y-3">
             {[
@@ -197,7 +202,7 @@ export const AnalyticsDashboard = () => {
           </div>
         </Card>
 
-        <Card className="p-6 shadow-card">
+        <Card className="p-6 shadow-card animate-scale-in hover-lift transition-all duration-300">
           <h3 className="text-lg font-semibold mb-4">Top Safety Concerns</h3>
           <div className="space-y-3">
             {[

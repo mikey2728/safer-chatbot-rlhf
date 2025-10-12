@@ -24,8 +24,8 @@ export const ChatInterface = () => {
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {messages.length === 0 && (
           <div className="flex items-center justify-center h-full">
-            <div className="text-center space-y-4">
-              <div className="w-20 h-20 mx-auto bg-gradient-ai rounded-2xl flex items-center justify-center shadow-ai">
+            <div className="text-center space-y-4 animate-fade-in">
+              <div className="w-20 h-20 mx-auto bg-gradient-ai rounded-2xl flex items-center justify-center shadow-ai animate-float">
                 <CheckCircle className="w-10 h-10 text-primary-foreground" />
               </div>
               <h2 className="text-2xl font-bold bg-gradient-ai bg-clip-text text-transparent">
@@ -38,17 +38,18 @@ export const ChatInterface = () => {
           </div>
         )}
 
-        {messages.map((message) => (
+        {messages.map((message, index) => (
           <div
             key={message.id}
             className={cn(
-              "flex gap-4",
+              "flex gap-4 animate-slide-up",
               message.role === "user" ? "justify-end" : "justify-start"
             )}
+            style={{ animationDelay: `${index * 0.05}s` }}
           >
             <Card
               className={cn(
-                "max-w-[80%] p-4 shadow-card transition-all hover:shadow-lg",
+                "max-w-[80%] p-4 shadow-card transition-all duration-300 hover:shadow-lg hover-lift",
                 message.role === "assistant" && "bg-gradient-to-br from-card to-muted/20"
               )}
             >
@@ -152,8 +153,8 @@ export const ChatInterface = () => {
         ))}
 
         {isLoading && (
-          <div className="flex gap-4">
-            <Card className="max-w-[80%] p-4 shadow-card bg-gradient-to-br from-card to-muted/20">
+          <div className="flex gap-4 animate-fade-in">
+            <Card className="max-w-[80%] p-4 shadow-card bg-gradient-to-br from-card to-muted/20 animate-pulse-glow">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-gradient-ai flex items-center justify-center shadow-ai">
                   <span className="text-primary-foreground text-sm font-semibold">AI</span>
@@ -175,7 +176,7 @@ export const ChatInterface = () => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type your message to test AI safety..."
-            className="min-h-[60px] resize-none"
+            className="min-h-[60px] resize-none transition-all duration-300 focus:shadow-lg"
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
@@ -186,7 +187,7 @@ export const ChatInterface = () => {
           <Button
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
-            className="bg-gradient-primary hover:opacity-90 shadow-lg"
+            className="bg-gradient-primary hover:opacity-90 shadow-lg transition-all duration-300 hover:scale-105"
           >
             <Send className="w-4 h-4" />
           </Button>
