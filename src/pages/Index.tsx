@@ -4,6 +4,7 @@ import { MessageSquare, GitCompare, BarChart3, Shield } from "lucide-react";
 import { ChatInterface } from "@/components/ChatInterface";
 import { ComparisonMode } from "@/components/ComparisonMode";
 import { AnalyticsDashboard } from "@/components/AnalyticsDashboard";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("chat");
@@ -26,6 +27,7 @@ const Index = () => {
                 </p>
               </div>
             </div>
+            <ThemeToggle />
           </div>
         </div>
       </header>
