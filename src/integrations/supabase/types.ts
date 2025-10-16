@@ -14,163 +14,16 @@ export type Database = {
   }
   public: {
     Tables: {
-      conversations: {
-        Row: {
-          created_at: string | null
-          id: string
-          title: string | null
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          title?: string | null
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          title?: string | null
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      feedback: {
-        Row: {
-          created_at: string | null
-          feedback_type: string | null
-          id: string
-          message_id: string
-          notes: string | null
-          safety_rating: number | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          feedback_type?: string | null
-          id?: string
-          message_id: string
-          notes?: string | null
-          safety_rating?: number | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          feedback_type?: string | null
-          id?: string
-          message_id?: string
-          notes?: string | null
-          safety_rating?: number | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "feedback_message_id_fkey"
-            columns: ["message_id"]
-            isOneToOne: false
-            referencedRelation: "messages"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      messages: {
-        Row: {
-          content: string
-          conversation_id: string
-          created_at: string | null
-          id: string
-          role: string
-        }
-        Insert: {
-          content: string
-          conversation_id: string
-          created_at?: string | null
-          id?: string
-          role: string
-        }
-        Update: {
-          content?: string
-          conversation_id?: string
-          created_at?: string | null
-          id?: string
-          role?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "messages_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: false
-            referencedRelation: "conversations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      profiles: {
-        Row: {
-          created_at: string | null
-          display_name: string | null
-          email: string
-          id: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          display_name?: string | null
-          email: string
-          id: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          display_name?: string | null
-          email?: string
-          id?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      user_roles: {
-        Row: {
-          granted_at: string | null
-          granted_by: string | null
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Insert: {
-          granted_at?: string | null
-          granted_by?: string | null
-          id?: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Update: {
-          granted_at?: string | null
-          granted_by?: string | null
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
-      app_role: "admin" | "evaluator" | "viewer"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -297,8 +150,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      app_role: ["admin", "evaluator", "viewer"],
-    },
+    Enums: {},
   },
 } as const
