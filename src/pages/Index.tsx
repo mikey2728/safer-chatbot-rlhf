@@ -1,13 +1,17 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MessageSquare, GitCompare, BarChart3, Shield } from "lucide-react";
+import { MessageSquare, GitCompare, BarChart3, Shield, User, LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { ChatInterface } from "@/components/ChatInterface";
 import { ComparisonMode } from "@/components/ComparisonMode";
 import { AnalyticsDashboard } from "@/components/AnalyticsDashboard";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("chat");
+  const { user, isAdmin, signOut } = useAuth();
 
   return (
     <div className="min-h-screen bg-background">
@@ -27,7 +31,22 @@ const Index = () => {
                 </p>
               </div>
             </div>
-            <ThemeToggle />
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <User className="w-4 h-4" />
+                <span className="text-sm">{user?.email}</span>
+                {isAdmin && <Badge variant="secondary">Admin</Badge>}
+              </div>
+              <ThemeToggle />
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={signOut}
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -43,15 +62,17 @@ const Index = () => {
               <GitCompare className="w-4 h-4" />
               Compare
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="gap-2 transition-all duration-300">
-              <BarChart3 className="w-4 h-4" />
-              Analytics
-            </TabsTrigger>
+            {isAdmin && (
+              <TabsTrigger value="analytics" className="gap-2 transition-all duration-300">
+                <BarChart3 className="w-4 h-4" />
+                Analytics
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="chat" className="h-full mt-0">
             <div className="h-full rounded-xl border border-border bg-card shadow-card overflow-hidden animate-scale-in">
-              <ChatInterface />
+              <ChatInterface userId={user?.id} />
             </div>
           </TabsContent>
 
@@ -61,11 +82,13 @@ const Index = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="analytics" className="h-full mt-0">
-            <div className="h-full rounded-xl border border-border bg-card shadow-card overflow-auto animate-scale-in">
-              <AnalyticsDashboard />
-            </div>
-          </TabsContent>
+          {isAdmin && (
+            <TabsContent value="analytics" className="h-full mt-0">
+              <div className="h-full rounded-xl border border-border bg-card shadow-card overflow-auto animate-scale-in">
+                <AnalyticsDashboard />
+              </div>
+            </TabsContent>
+          )}
         </Tabs>
       </main>
     </div>
