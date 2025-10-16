@@ -5,18 +5,143 @@ import { Send, ThumbsUp, ThumbsDown, AlertTriangle, CheckCircle } from "lucide-r
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { useStreamingChat } from "@/hooks/useStreamingChat";
+import { useConversation } from "@/hooks/useConversation";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { z } from "zod";
 
-export const ChatInterface = () => {
+const messageSchema = z.string().trim().min(1, "Message cannot be empty").max(4000, "Message too long (max 4000 characters)");
+
+interface ChatInterfaceProps {
+  userId?: string;
+}
+
+export const ChatInterface = ({ userId }: ChatInterfaceProps) => {
   const [input, setInput] = useState("");
-  const { messages, isLoading, streamChat, handleFeedback, handleSafetyRating } = useStreamingChat();
+  const [isLoading, setIsLoading] = useState(false);
+  const { messages, saveMessage, saveFeedback } = useConversation(userId);
+  const { toast } = useToast();
 
   const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading || !userId) return;
     
-    const message = input;
-    setInput("");
-    await streamChat(message);
+    try {
+      // Validate input
+      messageSchema.parse(input);
+      
+      const message = input;
+      setInput("");
+      setIsLoading(true);
+
+      // Save user message
+      const userMsg = await saveMessage("user", message);
+      if (!userMsg) {
+        setIsLoading(false);
+        return;
+      }
+
+      // Stream AI response
+      const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
+      const response = await fetch(CHAT_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ messages: [{ role: "user", content: message }] }),
+      });
+
+      if (!response.ok || !response.body) {
+        if (response.status === 429) {
+          toast({
+            title: "Rate limit exceeded",
+            description: "Please slow down and try again later.",
+            variant: "destructive",
+          });
+        } else if (response.status === 402) {
+          toast({
+            title: "Payment required",
+            description: "Please add credits to continue using AI features.",
+            variant: "destructive",
+          });
+        } else {
+          throw new Error("Failed to start AI stream");
+        }
+        setIsLoading(false);
+        return;
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let textBuffer = "";
+      let aiResponse = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        textBuffer += decoder.decode(value, { stream: true });
+
+        let newlineIndex: number;
+        while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
+          let line = textBuffer.slice(0, newlineIndex);
+          textBuffer = textBuffer.slice(newlineIndex + 1);
+
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (line.startsWith(":") || line.trim() === "") continue;
+          if (!line.startsWith("data: ")) continue;
+
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") break;
+
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content;
+            if (content) {
+              aiResponse += content;
+            }
+          } catch {
+            textBuffer = line + "\n" + textBuffer;
+            break;
+          }
+        }
+      }
+
+      // Save AI response
+      await saveMessage("assistant", aiResponse);
+      setIsLoading(false);
+
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast({
+          title: "Validation error",
+          description: error.errors[0].message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: error instanceof Error ? error.message : "Failed to send message",
+          variant: "destructive",
+        });
+      }
+      setIsLoading(false);
+    }
+  };
+
+  const handleFeedback = async (messageId: string, type: "positive" | "negative") => {
+    await saveFeedback(messageId, type);
+    toast({
+      title: "Feedback saved",
+      description: "Thank you for your feedback!",
+    });
+  };
+
+  const handleSafetyRating = async (messageId: string, rating: number) => {
+    await saveFeedback(messageId, undefined, rating);
+    toast({
+      title: "Safety rating saved",
+      description: `Rated ${rating}/5 stars`,
+    });
   };
 
   return (
@@ -77,23 +202,17 @@ export const ChatInterface = () => {
                         </span>
                         <Button
                           size="sm"
-                          variant={message.feedback === "positive" ? "default" : "outline"}
+                          variant="outline"
                           onClick={() => handleFeedback(message.id, "positive")}
-                          className={cn(
-                            "h-7",
-                            message.feedback === "positive" && "bg-success hover:bg-success/90"
-                          )}
+                          className="h-7 hover:bg-success/20"
                         >
                           <ThumbsUp className="w-3 h-3" />
                         </Button>
                         <Button
                           size="sm"
-                          variant={message.feedback === "negative" ? "default" : "outline"}
+                          variant="outline"
                           onClick={() => handleFeedback(message.id, "negative")}
-                          className={cn(
-                            "h-7",
-                            message.feedback === "negative" && "bg-destructive hover:bg-destructive/90"
-                          )}
+                          className="h-7 hover:bg-destructive/20"
                         >
                           <ThumbsDown className="w-3 h-3" />
                         </Button>
@@ -107,43 +226,19 @@ export const ChatInterface = () => {
                           <Button
                             key={rating}
                             size="sm"
-                            variant={message.safetyRating === rating ? "default" : "outline"}
+                            variant="outline"
                             onClick={() => handleSafetyRating(message.id, rating)}
-                            className={cn(
-                              "h-7 w-7 p-0",
-                              message.safetyRating === rating &&
-                                rating <= 2 &&
-                                "bg-destructive hover:bg-destructive/90",
-                              message.safetyRating === rating &&
-                                rating === 3 &&
-                                "bg-warning hover:bg-warning/90",
-                              message.safetyRating === rating &&
-                                rating >= 4 &&
-                                "bg-success hover:bg-success/90"
-                            )}
+                            className="h-7 w-7 p-0 hover:bg-primary/20"
                           >
                             {rating}
                           </Button>
                         ))}
                       </div>
 
-                      {message.safetyRating && (
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "text-xs",
-                            message.safetyRating <= 2 && "border-destructive text-destructive",
-                            message.safetyRating === 3 && "border-warning text-warning",
-                            message.safetyRating >= 4 && "border-success text-success"
-                          )}
-                        >
-                          {message.safetyRating <= 2 && <AlertTriangle className="w-3 h-3 mr-1" />}
-                          {message.safetyRating >= 4 && <CheckCircle className="w-3 h-3 mr-1" />}
-                          {message.safetyRating <= 2 && "Needs Improvement"}
-                          {message.safetyRating === 3 && "Moderate"}
-                          {message.safetyRating >= 4 && "Safe Response"}
-                        </Badge>
-                      )}
+                      <Badge variant="outline" className="text-xs">
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        Rate this response to improve AI safety
+                      </Badge>
                     </div>
                   )}
                 </div>
