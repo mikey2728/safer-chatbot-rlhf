@@ -1,13 +1,16 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MessageSquare, GitCompare, BarChart3, Shield } from "lucide-react";
+import { MessageSquare, GitCompare, BarChart3, Shield, LogOut } from "lucide-react";
 import { ChatInterface } from "@/components/ChatInterface";
 import { ComparisonMode } from "@/components/ComparisonMode";
 import { AnalyticsDashboard } from "@/components/AnalyticsDashboard";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("chat");
+  const { signOut } = useAuth();
 
   return (
     <div className="min-h-screen bg-background">
@@ -29,6 +32,9 @@ const Index = () => {
             </div>
             <div className="flex items-center gap-2">
               <ThemeToggle />
+              <Button variant="outline" size="icon" onClick={signOut} title="Sign out">
+                <LogOut className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         </div>
