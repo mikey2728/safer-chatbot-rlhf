@@ -6,9 +6,6 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useStreamingChat } from "@/hooks/useStreamingChat";
-import { messageSchema } from "@/lib/validation";
-import { toast } from "sonner";
-import { z } from "zod";
 
 export const ChatInterface = () => {
   const [input, setInput] = useState("");
@@ -17,15 +14,9 @@ export const ChatInterface = () => {
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
     
-    try {
-      const validMessage = messageSchema.parse(input);
-      setInput("");
-      await streamChat(validMessage);
-    } catch (err) {
-      if (err instanceof z.ZodError) {
-        toast.error(err.errors[0].message);
-      }
-    }
+    const message = input;
+    setInput("");
+    await streamChat(message);
   };
 
   return (
